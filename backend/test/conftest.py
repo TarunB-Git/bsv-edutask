@@ -45,21 +45,19 @@ def test_db(test_mongo_client):
     # Cleanup: drop entire test database after all tests
     test_mongo_client.drop_database(TEST_DB_NAME)
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def clear_collections(test_db):
     """Clear test collection before and after each test to ensure isolation."""
-    # Clear before test
     test_db["user"].delete_many({})
-    
+
     yield
-    
-    # Clear after test
+
     test_db["user"].delete_many({})
+
 @pytest.fixture
-def user_dao(test_db):
+def user_dao(test_db, clear_collections):
     """DAO instance for user collection connected to test database."""
-    dao = DAO('user')
-    # Override collection to use test database instead of production
+    dao = DAO.__new__(DAO)
     dao.collection = test_db['user']
     return dao
 
